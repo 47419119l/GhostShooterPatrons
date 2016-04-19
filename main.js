@@ -1009,6 +1009,7 @@ var mainState = (function (_super) {
         this.setupCamera();
         this.createMonsters();
         this.createTexts();
+        this.displayVidas = new DisplayVidas(this.player, this.livesText);
         if (!this.game.device.desktop) {
             this.createVirtualJoystick();
         }
@@ -1099,8 +1100,8 @@ var mainState = (function (_super) {
     };
     ;
     mainState.prototype.createPlayer = function () {
-        var tmpPlayer = new PlayerNormal(this.game);
-        var casco = new Casco(this.game, tmpPlayer);
+        var tmpPlayer = new PlayerNormal(this.game, this.displayVidas);
+        var casco = new Casco(this.game, tmpPlayer, this.displayVidas);
         casco.setHealth();
         tmpPlayer = casco.player;
         this.player = this.add.existing(tmpPlayer);
@@ -1140,7 +1141,11 @@ var mainState = (function (_super) {
     mainState.prototype.monsterTouchesPlayer = function (player, monster) {
         monster.kill();
         player.damage(1);
-        this.livesText.setText("Lives: " + this.player.health);
+        player.notifica();
+        /**
+         * Cridant al display per que mostri les vides.
+         */
+        this.displayVidas.display();
         this.blink(player);
         if (player.health == 0) {
             this.stateText.text = " GAME OVER \n Click to restart";
@@ -1332,7 +1337,7 @@ var MonsterRobot = (function (_super) {
  */
 var Player = (function (_super) {
     __extends(Player, _super);
-    function Player(game) {
+    function Player(game, displayVidas) {
         _super.call(this, game, game.world.centerX, game.world.centerY, 'player', null);
         this.PLAYER_MAX_SPEED = 400; // pixels/second
         this.PLAYER_DRAG = 600;
@@ -1343,27 +1348,35 @@ var Player = (function (_super) {
         this.body.maxVelocity.setTo(this.PLAYER_MAX_SPEED, this.PLAYER_MAX_SPEED);
         this.body.collideWorldBounds = true;
         this.body.drag.setTo(this.PLAYER_DRAG, this.PLAYER_DRAG);
+        this.displayVidas = displayVidas;
     }
+    Player.prototype.suscriuresObserver = function (displayVidas) {
+        this.displayVidas = displayVidas;
+    };
+    Player.prototype.notifica = function () {
+        this.displayVidas.update(this.health);
+    };
     return Player;
 })(Phaser.Sprite);
 var PlayerNormal = (function (_super) {
     __extends(PlayerNormal, _super);
-    function PlayerNormal() {
-        _super.apply(this, arguments);
+    function PlayerNormal(game, displayVidas) {
+        _super.call(this, game, displayVidas);
+        this.health = 4;
     }
     return PlayerNormal;
 })(Player);
 var DecoratorPlayer = (function (_super) {
     __extends(DecoratorPlayer, _super);
-    function DecoratorPlayer(game) {
-        _super.call(this, game);
+    function DecoratorPlayer(game, displayVidas) {
+        _super.call(this, game, displayVidas);
     }
     return DecoratorPlayer;
 })(Player);
 var Casco = (function (_super) {
     __extends(Casco, _super);
-    function Casco(game, player) {
-        _super.call(this, game);
+    function Casco(game, player, displayVidas) {
+        _super.call(this, game, displayVidas);
         this.player = player;
     }
     Casco.prototype.setHealth = function () {
@@ -1374,15 +1387,16 @@ var Casco = (function (_super) {
  * Patró Observer.
  */
 var DisplayVidas = (function () {
-    function DisplayVidas(player, game) {
+    function DisplayVidas(player, livesText) {
         this.lives = 0;
         this.player = player;
+        this.livesText = livesText;
     }
     DisplayVidas.prototype.update = function (vidas) {
         this.lives = vidas;
     };
     DisplayVidas.prototype.display = function () {
-        // this.game.livesText.setText('Lives: ' + this.lives);
+        this.livesText.setText('Lives: ' + this.lives);
     };
     return DisplayVidas;
 })();

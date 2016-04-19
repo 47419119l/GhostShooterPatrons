@@ -3,7 +3,7 @@
 
 class mainState extends Phaser.State {
     private factoryMonster:FactoryMonstruos;
-    private player:Phaser.Sprite;
+    private player:Player;
     private cursors:Phaser.CursorKeys;
     private bullets:Phaser.Group;
     private tilemap:Phaser.Tilemap;
@@ -15,6 +15,7 @@ class mainState extends Phaser.State {
     private livesText:Phaser.Text;
     private stateText:Phaser.Text;
     private gamepad:Gamepads.GamePad;
+    private displayVidas:DisplayVidas;
 
 
     private PLAYER_ACCELERATION = 500;
@@ -73,7 +74,7 @@ class mainState extends Phaser.State {
         this.setupCamera();
         this.createMonsters();
         this.createTexts();
-
+        this.displayVidas= new DisplayVidas(this.player,this.livesText);
         if (!this.game.device.desktop) {
             this.createVirtualJoystick();
         }
@@ -180,8 +181,8 @@ class mainState extends Phaser.State {
     };
 
     private createPlayer() {
-        var tmpPlayer = new PlayerNormal(this.game);
-        var casco = new Casco(this.game,tmpPlayer);
+        var tmpPlayer = new PlayerNormal(this.game,this.displayVidas);
+        var casco = new Casco(this.game,tmpPlayer,this.displayVidas);
         casco.setHealth();
         tmpPlayer = casco.player;
         this.player = this.add.existing(tmpPlayer);
@@ -223,13 +224,16 @@ class mainState extends Phaser.State {
         //this.gamepad.stick2.
     }
 
-    private monsterTouchesPlayer(player:Phaser.Sprite, monster:Phaser.Sprite) {
+    private monsterTouchesPlayer(player:Player, monster:Phaser.Sprite) {
         monster.kill();
 
         player.damage(1);
 
-        this.livesText.setText("Lives: " + this.player.health);
-
+        player.notifica();
+        /**
+         * Cridant al display per que mostri les vides.
+         */
+        this.displayVidas.display();
         this.blink(player);
 
         if (player.health == 0) {
@@ -431,13 +435,13 @@ class MonsterRobot extends Monster{
  * Patró Decorator
  */
 
-abstract class Player extends Phaser.Sprite{
+abstract class Player extends Phaser.Sprite implements Publicador{ // Player també sera utiltizat per fer el observer per anar comprovant les seves vides.
 
     private PLAYER_MAX_SPEED = 400; // pixels/second
     private PLAYER_DRAG = 600;
     game:ShooterGame;
-
-    constructor(game:Phaser.Game){
+    displayVidas:DisplayVidas;
+    constructor(game:Phaser.Game,displayVidas:DisplayVidas){
         super(game, game.world.centerX, game.world.centerY, 'player', null);
         this.game = game;
         this.anchor.setTo(0.5, 0.5);
@@ -446,22 +450,34 @@ abstract class Player extends Phaser.Sprite{
         this.body.maxVelocity.setTo(this.PLAYER_MAX_SPEED, this.PLAYER_MAX_SPEED);
         this.body.collideWorldBounds = true;
         this.body.drag.setTo(this.PLAYER_DRAG, this.PLAYER_DRAG);
+        this.displayVidas=displayVidas;
+    }
+    suscriuresObserver(displayVidas) {
+        this.displayVidas=displayVidas;
+
     }
 
+    notifica() {
+      this.displayVidas.update(this.health);
+    }
 }
-class PlayerNormal extends Player{
+class PlayerNormal extends Player {
+    constructor(game:Phaser.Game,displayVidas:DisplayVidas){
+        super(game,displayVidas);
+        this.health= 4;
 
+    }
 }
 abstract class DecoratorPlayer extends Player{
-    constructor(game:Phaser.Game){
-        super(game);
+    constructor(game:Phaser.Game,displayVidas:DisplayVidas){
+        super(game,displayVidas);
     }
     abstract setHealth();
 }
 class Casco extends DecoratorPlayer{
     player:Player;
-    constructor(game:Phaser.Game,player:Player){
-        super(game);
+    constructor(game:Phaser.Game,player:Player,displayVidas:DisplayVidas){
+        super(game,displayVidas);
         this.player = player;
     }
     setHealth(){
@@ -481,17 +497,19 @@ interface DisplayElement{
     display();
 }
 class DisplayVidas implements DisplayElement , Observer{
-    game:ShooterGame;
+
     player:Phaser.Sprite;
+    livesText:Phaser.Text
     lives=0;
-    constructor(player:Phaser.Sprite,game:Phaser.Game) {
+    constructor(player:PlayerNormal,livesText:Phaser.Text) {
         this.player=player;
+        this.livesText=livesText;
     }
     update(vidas:number){
         this.lives=vidas;
     }
     display(){
-        // this.game.livesText.setText('Lives: ' + this.lives);
+        this.livesText.setText('Lives: ' + this.lives);
     }
 }
 class ShooterGame extends Phaser.Game {
