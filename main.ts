@@ -73,8 +73,10 @@ class mainState extends Phaser.State {
         this.createPlayer();
         this.setupCamera();
         this.createMonsters();
+
+        //funciones comentadas, nueva ubicación en -> createPlayer();
         this.createTexts();
-        this.displayVidas= new DisplayVidas(this.player,this.livesText);
+        this.displayVidas = new DisplayVidas(this.player,this.livesText);
         if (!this.game.device.desktop) {
             this.createVirtualJoystick();
         }
@@ -97,7 +99,6 @@ class mainState extends Phaser.State {
         this.stateText.visible = false;
         this.stateText.fixedToCamera = true;
     };
-
     private createExplosions() {
         this.explosions = this.add.group();
         this.explosions.createMultiple(20, 'explosion');
@@ -109,7 +110,6 @@ class mainState extends Phaser.State {
             explosion.loadTexture(this.rnd.pick(['explosion', 'explosion2', 'explosion3']));
         }, this);
     };
-
     private createWalls() {
         this.walls = this.tilemap.createLayer('walls');
         this.walls.x = this.world.centerX;
@@ -119,19 +119,16 @@ class mainState extends Phaser.State {
 
         this.tilemap.setCollisionBetween(1, 195, true, 'walls');
     };
-
     private createBackground() {
         this.background = this.tilemap.createLayer('background');
         this.background.x = this.world.centerX;
         this.background.y = this.world.centerY;
     };
-
     private createTilemap() {
         this.tilemap = this.game.add.tilemap('tilemap');
         this.tilemap.addTilesetImage('tilesheet_complete', 'tiles');
 
     };
-
     private createMonsters() {
         this.monsters = this.add.group();
         this.monsters.enableBody = true;
@@ -146,18 +143,12 @@ class mainState extends Phaser.State {
         this.monsters.setAll('checkWorldBounds', true);
         this.monsters.callAll('events.onOutOfBounds.add', 'events.onOutOfBounds', this.resetMonster, this);
     };
-
-    private setRandomAngle(monster:Phaser.Sprite) {
-        monster.angle = this.rnd.angle();
-    }
-
     private resetMonster(monster:Phaser.Sprite) {
         monster.rotation = this.physics.arcade.angleBetween(
             monster,
             this.player
         );
     }
-
     private createBullets() {
         this.bullets = this.add.group();
         this.bullets.enableBody = true;
@@ -171,7 +162,6 @@ class mainState extends Phaser.State {
         this.bullets.setAll('outOfBoundsKill', true);
         this.bullets.setAll('checkWorldBounds', true);
     };
-
     private createVirtualJoystick() {
         this.gamepad = new Gamepads.GamePad(this.game, Gamepads.GamepadType.DOUBLE_STICK);
     };
@@ -181,12 +171,15 @@ class mainState extends Phaser.State {
     };
 
     private createPlayer() {
-        var tmpPlayer = new PlayerNormal(this.game,this.displayVidas);
-        var casco = new Casco(this.game,tmpPlayer,this.displayVidas);
+        var jugadorNormal = new PlayerNormal(this.game, null);
+        var casco = new Casco(this.game, jugadorNormal, null);
         casco.setHealth();
-        tmpPlayer = casco.player;
-        this.player = this.add.existing(tmpPlayer);
-        console.log(this.player, "PLAYER");
+        jugadorNormal = casco.player;
+        this.player = this.add.existing(jugadorNormal);
+
+
+        console.log(this.displayVidas, "display vidassss");
+
     };
 
     update():void {
@@ -208,7 +201,6 @@ class mainState extends Phaser.State {
         this.physics.arcade.collide(this.walls, this.monsters, this.resetMonster, null, this);
         this.physics.arcade.collide(this.monsters, this.monsters, this.resetMonster, null, this);
     }
-
     rotateWithRightStick() {
         var speed = this.gamepad.stick2.speed;
 
@@ -219,17 +211,16 @@ class mainState extends Phaser.State {
             this.fire();
         }
     }
-
     fireWithRightStick() {
         //this.gamepad.stick2.
     }
-
     private monsterTouchesPlayer(player:Player, monster:Phaser.Sprite) {
+
         monster.kill();
 
         player.damage(1);
 
-        player.notifica();
+        player.notifica();//cuando el monstruo toca al jugador, notifica usando el patrón observer
         /**
          * Cridant al display per que mostri les vides.
          */
@@ -244,16 +235,13 @@ class mainState extends Phaser.State {
             this.input.onTap.addOnce(this.restart, this);
         }
     }
-
     restart() {
         this.game.state.restart();
     }
-
     private bulletHitWall(bullet:Phaser.Sprite, walls:Phaser.TilemapLayer) {
         this.explosion(bullet.x, bullet.y);
         bullet.kill();
     }
-
     private bulletHitMonster(bullet:Phaser.Sprite, monster:Phaser.Sprite) {
         bullet.kill();
         monster.damage(1);
@@ -268,7 +256,6 @@ class mainState extends Phaser.State {
             this.scoreText.setText("Score: " + this.score);
         }
     }
-
     blink(sprite:Phaser.Sprite) {
         var tween = this.add.tween(sprite)
             .to({alpha: 0.5}, 100, Phaser.Easing.Bounce.Out)
@@ -277,28 +264,23 @@ class mainState extends Phaser.State {
         tween.repeat(3);
         tween.start();
     }
-
     private moveMonsters() {
         this.monsters.forEach(this.advanceStraightAhead, this)
     };
-
     private advanceStraightAhead(monster:Phaser.Sprite) {
         this.physics.arcade.velocityFromAngle(monster.angle, this.MONSTER_SPEED, monster.body.velocity);
     }
-
     private fireWhenButtonClicked() {
         if (this.input.activePointer.isDown) {
             this.fire();
         }
     };
-
     private rotatePlayerToPointer() {
         this.player.rotation = this.physics.arcade.angleToPointer(
             this.player,
             this.input.activePointer
         );
     };
-
     private movePlayer() {
         var moveWithKeyboard = function () {
             if (this.cursors.left.isDown ||
@@ -340,7 +322,6 @@ class mainState extends Phaser.State {
             moveWithVirtualJoystick.call(this);
         }
     };
-
     fire():void {
         if (this.time.now > this.nextFire) {
             var bullet = this.bullets.getFirstDead();
@@ -363,7 +344,6 @@ class mainState extends Phaser.State {
             }
         }
     }
-
     explosion(x:number, y:number):void {
         var explosion:Phaser.Sprite = this.explosions.getFirstDead();
         if (explosion) {
@@ -408,7 +388,7 @@ abstract class Monster extends Phaser.Sprite {
         this.game = game;
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.anchor.setTo(0.5,0.5);
-        this.health= VIDES;
+        this.health = VIDES;
         this.angle =  game.rnd.angle();
         this.checkWorldBounds=true;
     }
@@ -419,7 +399,6 @@ class MonsterZombie extends Monster{
         super(game,150,150,'zombie1',3);
     }
 }
-
 class MonsterZombieDos extends Monster{
     constructor(game:Phaser.Game){
         super(game,280,120,'zombie2',4);
@@ -434,53 +413,55 @@ class MonsterRobot extends Monster{
 /**
  * Patró Decorator
  */
-abstract class Player extends Phaser.Sprite implements Publicador{ // Player també sera utiltizat per fer el observer per anar comprovant les seves vides.
+abstract class Player extends Phaser.Sprite implements Publicador{// Player també sera utiltizat per fer el observer per anar comprovant les seves vides.
 
     private PLAYER_MAX_SPEED = 400; // pixels/second
     private PLAYER_DRAG = 600;
     game:ShooterGame;
     displayVidas:DisplayVidas;
-    constructor(game:Phaser.Game,displayVidas:DisplayVidas){
+
+    constructor(game:Phaser.Game, displayVidas:DisplayVidas){
         super(game, game.world.centerX, game.world.centerY, 'player', null);
         this.game = game;
         this.anchor.setTo(0.5, 0.5);
-        this.health = 3;
+        //this.health = 3;
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.body.maxVelocity.setTo(this.PLAYER_MAX_SPEED, this.PLAYER_MAX_SPEED);
         this.body.collideWorldBounds = true;
         this.body.drag.setTo(this.PLAYER_DRAG, this.PLAYER_DRAG);
-        this.displayVidas=displayVidas;
+        this.displayVidas = displayVidas;
     }
-    suscriuresObserver(displayVidas) {
-        this.displayVidas=displayVidas;
 
+    suscriuresObserver(displayVidas) {
+        this.displayVidas = displayVidas;
     }
 
     notifica() {
-      this.displayVidas.update(this.health);
+        this.displayVidas.update(this.health);
     }
+
 }
 class PlayerNormal extends Player {
-    constructor(game:Phaser.Game,displayVidas:DisplayVidas){
-        super(game,displayVidas);
-        this.health= 4;
-
+    constructor(game:Phaser.Game, displayVidas:DisplayVidas){
+        super(game, displayVidas);
+        this.health = 4;
     }
+
 }
 abstract class DecoratorPlayer extends Player{
-    constructor(game:Phaser.Game,displayVidas:DisplayVidas){
-        super(game,displayVidas);
+    constructor(game:Phaser.Game, displayVidas:DisplayVidas){
+        super(game, displayVidas);
     }
     abstract setHealth();
 }
 class Casco extends DecoratorPlayer{
     player:Player;
-    constructor(game:Phaser.Game,player:Player,displayVidas:DisplayVidas){
+    constructor(game:Phaser.Game, player:Player, displayVidas:DisplayVidas){
         super(game,displayVidas);
         this.player = player;
     }
     setHealth(){
-        this.player.health = 6;
+        this.player.health += 2;
     }
 }
 /**
@@ -496,17 +477,19 @@ interface Observer{
 interface DisplayElement{
     display();
 }
-class DisplayVidas implements DisplayElement , Observer{
+class DisplayVidas implements DisplayElement, Observer{
 
-    player:Phaser.Sprite;
+    player:Player;
     livesText:Phaser.Text;
-    lives=0;
-    constructor(player:PlayerNormal,livesText:Phaser.Text) {
-        this.player=player;
-        this.livesText=livesText;
+    lives = 0;
+
+    constructor(player:Player, livesText:Phaser.Text) {
+        this.player = player;
+        this.livesText = livesText;
+        this.player.suscriuresObserver(this);
     }
     update(vidas:number){
-        this.lives=vidas;
+        this.lives = vidas;
     }
     display(){
         this.livesText.setText('Lives: ' + this.lives);

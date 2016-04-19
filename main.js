@@ -1008,6 +1008,7 @@ var mainState = (function (_super) {
         this.createPlayer();
         this.setupCamera();
         this.createMonsters();
+        //funciones comentadas, nueva ubicación en -> createPlayer();
         this.createTexts();
         this.displayVidas = new DisplayVidas(this.player, this.livesText);
         if (!this.game.device.desktop) {
@@ -1072,9 +1073,6 @@ var mainState = (function (_super) {
         this.monsters.callAll('events.onOutOfBounds.add', 'events.onOutOfBounds', this.resetMonster, this);
     };
     ;
-    mainState.prototype.setRandomAngle = function (monster) {
-        monster.angle = this.rnd.angle();
-    };
     mainState.prototype.resetMonster = function (monster) {
         monster.rotation = this.physics.arcade.angleBetween(monster, this.player);
     };
@@ -1100,12 +1098,12 @@ var mainState = (function (_super) {
     };
     ;
     mainState.prototype.createPlayer = function () {
-        var tmpPlayer = new PlayerNormal(this.game, this.displayVidas);
-        var casco = new Casco(this.game, tmpPlayer, this.displayVidas);
+        var jugadorNormal = new PlayerNormal(this.game, null);
+        var casco = new Casco(this.game, jugadorNormal, null);
         casco.setHealth();
-        tmpPlayer = casco.player;
-        this.player = this.add.existing(tmpPlayer);
-        console.log(this.player, "PLAYER");
+        jugadorNormal = casco.player;
+        this.player = this.add.existing(jugadorNormal);
+        console.log(this.displayVidas, "display vidassss");
     };
     ;
     mainState.prototype.update = function () {
@@ -1141,7 +1139,7 @@ var mainState = (function (_super) {
     mainState.prototype.monsterTouchesPlayer = function (player, monster) {
         monster.kill();
         player.damage(1);
-        player.notifica();
+        player.notifica(); //cuando el monstruo toca al jugador, notifica usando el patrón observer
         /**
          * Cridant al display per que mostri les vides.
          */
@@ -1343,7 +1341,7 @@ var Player = (function (_super) {
         this.PLAYER_DRAG = 600;
         this.game = game;
         this.anchor.setTo(0.5, 0.5);
-        this.health = 3;
+        //this.health = 3;
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.body.maxVelocity.setTo(this.PLAYER_MAX_SPEED, this.PLAYER_MAX_SPEED);
         this.body.collideWorldBounds = true;
@@ -1380,7 +1378,7 @@ var Casco = (function (_super) {
         this.player = player;
     }
     Casco.prototype.setHealth = function () {
-        this.player.health = 6;
+        this.player.health += 2;
     };
     return Casco;
 })(DecoratorPlayer);
@@ -1389,6 +1387,7 @@ var DisplayVidas = (function () {
         this.lives = 0;
         this.player = player;
         this.livesText = livesText;
+        this.player.suscriuresObserver(this);
     }
     DisplayVidas.prototype.update = function (vidas) {
         this.lives = vidas;
