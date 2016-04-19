@@ -1383,9 +1383,7 @@ var Casco = (function (_super) {
         this.player.health = 6;
     };
     return Casco;
-})(DecoratorPlayer); /**
- * Patró Observer.
- */
+})(DecoratorPlayer);
 var DisplayVidas = (function () {
     function DisplayVidas(player, livesText) {
         this.lives = 0;

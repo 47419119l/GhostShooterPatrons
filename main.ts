@@ -434,7 +434,6 @@ class MonsterRobot extends Monster{
 /**
  * Patró Decorator
  */
-
 abstract class Player extends Phaser.Sprite implements Publicador{ // Player també sera utiltizat per fer el observer per anar comprovant les seves vides.
 
     private PLAYER_MAX_SPEED = 400; // pixels/second
@@ -483,7 +482,8 @@ class Casco extends DecoratorPlayer{
     setHealth(){
         this.player.health = 6;
     }
-}/**
+}
+/**
  * Patró Observer.
  */
 interface Publicador{
@@ -499,7 +499,7 @@ interface DisplayElement{
 class DisplayVidas implements DisplayElement , Observer{
 
     player:Phaser.Sprite;
-    livesText:Phaser.Text
+    livesText:Phaser.Text;
     lives=0;
     constructor(player:PlayerNormal,livesText:Phaser.Text) {
         this.player=player;
