@@ -1098,12 +1098,22 @@ var mainState = (function (_super) {
     };
     ;
     mainState.prototype.createPlayer = function () {
+        /**
+         * Al Webstorm surt com si hi hagues un error pero despres al compilar funciona correctement.
+         * També es podria fer així perque no dongues error :
+         *
+         *  var jugadorNormal = new PlayerNormal(this.game, null);
+         *  var casco = new Casco(this.game, jugadorNormal, null);
+         *  casco.setHealth();
+         *  jugadorNormal = casco.player;
+         *  this.player = this.add.existing(jugadorNormal);
+         *
+         */
         var jugadorNormal = new PlayerNormal(this.game, null);
-        var casco = new Casco(this.game, jugadorNormal, null);
-        casco.setHealth();
-        jugadorNormal = casco.player;
+        jugadorNormal = new Casco(this.game, jugadorNormal, null);
+        jugadorNormal.setHealth();
+        jugadorNormal = jugadorNormal.player;
         this.player = this.add.existing(jugadorNormal);
-        console.log(this.displayVidas, "display vidassss");
     };
     ;
     mainState.prototype.update = function () {
@@ -1278,7 +1288,10 @@ var mainState = (function (_super) {
     return mainState;
 })(Phaser.State);
 /**
- *PATRÓ FACTORY
+ *Patró factory : Crea els monstres segons el tipus que hi ha.
+ */
+/**
+ * Segons el parametre que se l'hi introdueix crea un tipus d'objecte o un altre.
  */
 var FactoryMonstruos = (function () {
     function FactoryMonstruos() {
@@ -1296,6 +1309,9 @@ var FactoryMonstruos = (function () {
     };
     return FactoryMonstruos;
 })();
+/**
+ * Classe abstracta tipus Monster
+ */
 var Monster = (function (_super) {
     __extends(Monster, _super);
     function Monster(game, x, y, key, VIDES) {
@@ -1309,6 +1325,9 @@ var Monster = (function (_super) {
     }
     return Monster;
 })(Phaser.Sprite);
+/**
+ * Monstre tipus zombie 1
+ */
 var MonsterZombie = (function (_super) {
     __extends(MonsterZombie, _super);
     function MonsterZombie(game) {
@@ -1316,6 +1335,9 @@ var MonsterZombie = (function (_super) {
     }
     return MonsterZombie;
 })(Monster);
+/**
+ * Mosntre tipus zombie 2
+ */
 var MonsterZombieDos = (function (_super) {
     __extends(MonsterZombieDos, _super);
     function MonsterZombieDos(game) {
@@ -1323,6 +1345,9 @@ var MonsterZombieDos = (function (_super) {
     }
     return MonsterZombieDos;
 })(Monster);
+/**
+ * Monstre tipus robot
+ */
 var MonsterRobot = (function (_super) {
     __extends(MonsterRobot, _super);
     function MonsterRobot(game) {
@@ -1331,7 +1356,7 @@ var MonsterRobot = (function (_super) {
     return MonsterRobot;
 })(Monster);
 /**
- * Patró Decorator
+ * Patró Decorator: El que farem serà crear un patro decorator amb el PLayer de manera que quan l'hi afeguim el Decorator "casco " se li incrementin 10 vides.
  */
 var Player = (function (_super) {
     __extends(Player, _super);
@@ -1341,7 +1366,6 @@ var Player = (function (_super) {
         this.PLAYER_DRAG = 600;
         this.game = game;
         this.anchor.setTo(0.5, 0.5);
-        //this.health = 3;
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.body.maxVelocity.setTo(this.PLAYER_MAX_SPEED, this.PLAYER_MAX_SPEED);
         this.body.collideWorldBounds = true;
@@ -1356,6 +1380,9 @@ var Player = (function (_super) {
     };
     return Player;
 })(Phaser.Sprite);
+/**
+ * Player normal té 4 vides
+ */
 var PlayerNormal = (function (_super) {
     __extends(PlayerNormal, _super);
     function PlayerNormal(game, displayVidas) {
@@ -1364,6 +1391,9 @@ var PlayerNormal = (function (_super) {
     }
     return PlayerNormal;
 })(Player);
+/**
+ * Creem la clase abstracta del Decorator
+ */
 var DecoratorPlayer = (function (_super) {
     __extends(DecoratorPlayer, _super);
     function DecoratorPlayer(game, displayVidas) {
@@ -1371,6 +1401,9 @@ var DecoratorPlayer = (function (_super) {
     }
     return DecoratorPlayer;
 })(Player);
+/**
+ * Creem el decorator casco
+ */
 var Casco = (function (_super) {
     __extends(Casco, _super);
     function Casco(game, player, displayVidas) {
@@ -1378,10 +1411,13 @@ var Casco = (function (_super) {
         this.player = player;
     }
     Casco.prototype.setHealth = function () {
-        this.player.health += 2;
+        this.player.health += 10;
     };
     return Casco;
 })(DecoratorPlayer);
+/**
+ * El displayVidas és el que va observant els notify del publicador i mostrant-los per pantalla (display())
+ */
 var DisplayVidas = (function () {
     function DisplayVidas(player, livesText) {
         this.lives = 0;

@@ -171,14 +171,24 @@ class mainState extends Phaser.State {
     };
 
     private createPlayer() {
+        /**
+         * Al Webstorm surt com si hi hagues un error pero despres al compilar funciona correctement.
+         * També es podria fer així perque no dongues error :
+         *
+         *  var jugadorNormal = new PlayerNormal(this.game, null);
+         *  var casco = new Casco(this.game, jugadorNormal, null);
+         *  casco.setHealth();
+         *  jugadorNormal = casco.player;
+         *  this.player = this.add.existing(jugadorNormal);
+         *
+         */
         var jugadorNormal = new PlayerNormal(this.game, null);
-        var casco = new Casco(this.game, jugadorNormal, null);
-        casco.setHealth();
-        jugadorNormal = casco.player;
+        jugadorNormal = new Casco(this.game, jugadorNormal, null);
+        jugadorNormal.setHealth();
+        jugadorNormal = jugadorNormal.player;
         this.player = this.add.existing(jugadorNormal);
 
 
-        console.log(this.displayVidas, "display vidassss");
 
     };
 
@@ -366,10 +376,13 @@ class mainState extends Phaser.State {
     }
 }
 /**
- *PATRÓ FACTORY
+ *Patró factory : Crea els monstres segons el tipus que hi ha.
+ */
+/**
+ * Segons el parametre que se l'hi introdueix crea un tipus d'objecte o un altre.
  */
 class FactoryMonstruos {
-    crearMonstruo(game:Phaser.Game,value:String) : Monster{
+    crearMonstruo(game:Phaser.Game,value:String) : Monster{ // Hem de passar per parametres el game perquè sapiga el contexte.
         if(value=='zombie1'){
             return new MonsterZombie(game);
         }else if(value=='zombie2'){
@@ -379,7 +392,9 @@ class FactoryMonstruos {
         }
     }
 }
-
+/**
+ * Classe abstracta tipus Monster
+ */
 abstract class Monster extends Phaser.Sprite {
     game:ShooterGame;
 
@@ -394,16 +409,25 @@ abstract class Monster extends Phaser.Sprite {
     }
 
 }
+/**
+ * Monstre tipus zombie 1
+ */
 class MonsterZombie extends Monster{
     constructor(game:Phaser.Game){
         super(game,150,150,'zombie1',3);
     }
 }
+/**
+ * Mosntre tipus zombie 2
+ */
 class MonsterZombieDos extends Monster{
     constructor(game:Phaser.Game){
         super(game,280,120,'zombie2',4);
     }
 }
+/**
+ * Monstre tipus robot
+ */
 class MonsterRobot extends Monster{
     constructor(game:Phaser.Game){
         super(game,452,235,'robot',5);
@@ -411,9 +435,9 @@ class MonsterRobot extends Monster{
     }
 }
 /**
- * Patró Decorator
+ * Patró Decorator: El que farem serà crear un patro decorator amb el PLayer de manera que quan l'hi afeguim el Decorator "casco " se li incrementin 10 vides.
  */
-abstract class Player extends Phaser.Sprite implements Publicador{// Player també sera utiltizat per fer el observer per anar comprovant les seves vides.
+abstract class Player extends Phaser.Sprite implements Publicador{// Player també sera utiltizat per fer el publicador per anar comprovant les seves vides.
 
     private PLAYER_MAX_SPEED = 400; // pixels/second
     private PLAYER_DRAG = 600;
@@ -424,7 +448,6 @@ abstract class Player extends Phaser.Sprite implements Publicador{// Player tamb
         super(game, game.world.centerX, game.world.centerY, 'player', null);
         this.game = game;
         this.anchor.setTo(0.5, 0.5);
-        //this.health = 3;
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.body.maxVelocity.setTo(this.PLAYER_MAX_SPEED, this.PLAYER_MAX_SPEED);
         this.body.collideWorldBounds = true;
@@ -441,6 +464,9 @@ abstract class Player extends Phaser.Sprite implements Publicador{// Player tamb
     }
 
 }
+/**
+ * Player normal té 4 vides
+ */
 class PlayerNormal extends Player {
     constructor(game:Phaser.Game, displayVidas:DisplayVidas){
         super(game, displayVidas);
@@ -448,12 +474,18 @@ class PlayerNormal extends Player {
     }
 
 }
+/**
+ * Creem la clase abstracta del Decorator
+ */
 abstract class DecoratorPlayer extends Player{
     constructor(game:Phaser.Game, displayVidas:DisplayVidas){
         super(game, displayVidas);
     }
     abstract setHealth();
 }
+/**
+ * Creem el decorator casco
+ */
 class Casco extends DecoratorPlayer{
     player:Player;
     constructor(game:Phaser.Game, player:Player, displayVidas:DisplayVidas){
@@ -461,22 +493,34 @@ class Casco extends DecoratorPlayer{
         this.player = player;
     }
     setHealth(){
-        this.player.health += 2;
+        this.player.health +=10;
     }
 }
 /**
- * Patró Observer.
+ * Patró Observer : Utilitzem al Player com a publicador i anem observant les seves vides per anar mostrant-les per pantalla.
+ */
+/**
+ * Interficie publicador: és el element al que anem observant
  */
 interface Publicador{
     suscriuresObserver(element);
     notifica();
 }
+/**
+ * Interficie del observer : és el que va observant al publicador
+ */
 interface Observer{
     update(vidas:number);
 }
+/**
+ * Interficie Display element : és el que va mostrant les dades.
+ */
 interface DisplayElement{
     display();
 }
+/**
+ * El displayVidas és el que va observant els notify del publicador i mostrant-los per pantalla (display())
+ */
 class DisplayVidas implements DisplayElement, Observer{
 
     player:Player;
